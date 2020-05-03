@@ -2,7 +2,7 @@
 const progressDiv =  document.querySelector("div.progress");
 const blockquote = document.querySelector("blockquote");
 const mainUl = document.querySelector("ul.collapsible");
-const serverUrl = 'http://127.0.0.1:3001/api/contacts';
+const serverUrl = 'http://5.61.33.30:3001/api/contacts';
 const inputField = document.querySelector('.input-field');
 
 
