@@ -7,13 +7,13 @@ const inputField = document.querySelector('.input-field');
 
 
 const leadStatuses = {
-    32880754: ["Переговоры", '#039be5'],
-    32880751: ["Первичный контакт", '#039be5'],
-    32880757: ["Принимают решение", '#039be5'],
-    32880760: ["Согласование договора", '#039be5'],
-    142: ["Успешно реализовано", '#039be5'],
-    143: ["Закрыто и не реализовано", '#039be5']
-}
+    32880754: "Переговоры",
+    32880751: "Первичный контакт",
+    32880757: "Принимают решение",
+    32880760: "Согласование договора",
+    142: "Успешно реализовано",
+    143: "Закрыто и не реализовано"
+};
 
 document.addEventListener('DOMContentLoaded', async () => {
     const elems = document.querySelectorAll('.collapsible');
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 inputField.addEventListener('input', (event) => {
     if ( event.target.value.length > 2 || event.target.value.length === 0 ) {
         clearContactList();
-        loadContacts(event.target.value)
+        loadContacts(event.target.value);
     }
 });
 
@@ -42,8 +42,7 @@ async function loadContacts(query) {
 
     progressDiv.classList.add('hide');
     blockquote.classList.add('hide');
-    console.log(contacts);
-    renderContacts(contacts)
+    renderContacts(contacts);
     inputField.classList.remove('hide');
 }
 
@@ -82,20 +81,16 @@ function fillHeader(contact, header) {
     i.classList.add('material-icons');
     i.textContent = 'account_circle';
     i.style.paddingTop = '5px';
-    createTags(contact, header)
+    createTags(contact, header);
     createCustomFields(contact, header);
 }
 
 function fillBody(contact, body) {
-    const leads = contact.leads;
+    const leads = contact.leads || [];
     leads.forEach(lead => {
-        const [leadContainer,
-            leadName,
-            pipeline,
-            price] = [createElem('div'),
-            createElem('div'),
-            createElem('div'),
-            createElem('div')];
+        const [leadContainer, leadName,
+               pipeline, price] = [createElem('div'), createElem('div'),
+                                   createElem('div'), createElem('div')];
 
         leadContainer.style.display = 'flex';
         leadContainer.style.flexDirection = 'row';
@@ -105,9 +100,9 @@ function fillBody(contact, body) {
         leadName.style.marginRight = '5px';
         leadName.style.fontWeight = '600';
 
-        pipeline.textContent = 'Воронка: ' + leadStatuses[lead["status_id"]][0];
+        pipeline.textContent = 'Воронка: ' + leadStatuses[lead["status_id"]];
         pipeline.classList.add("badge");
-        pipeline.style.backgroundColor = leadStatuses[lead["status_id"]][1];
+        pipeline.style.backgroundColor = '#039be5';
         pipeline.style.fontWeight = '600';
         pipeline.style.borderRadius = '2px';
         pipeline.style.color = '#fff';
@@ -161,7 +156,7 @@ function createTagsContainer(tags) {
 
     ul.style.width = '500px';
 
-    tags.forEach(tag => tag.name && ul.append(createTagNode(tag.name)))
+    tags.forEach(tag => tag.name && ul.append(createTagNode(tag.name)));
     return div;
 }
 
