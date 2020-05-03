@@ -5,13 +5,30 @@ const mainUl = document.querySelector("ul.collapsible");
 const serverUrl = 'http://127.0.0.1:3001/api/contacts';
 const inputField = document.querySelector('.input-field');
 
-document.addEventListener('DOMContentLoaded', async ()=>{
-  await loadContacts();
-  inputField.addEventListener('input', (event)=> event.target.value.length > 2 || event.target.value.length === 0 ? loadContacts(event.target.value) : null);
+
+const leadStatuses = {
+    32880754: ["Переговоры", '#039be5'],
+    32880751: ["Первичный контакт", '#039be5'],
+    32880757: ["Принимают решение", '#039be5'],
+    32880760: ["Согласование договора", '#039be5'],
+    142: ["Успешно реализовано", '#039be5'],
+    143: ["Закрыто и не реализовано", '#039be5']
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const elems = document.querySelectorAll('.collapsible');
+    M.Collapsible.init(elems);
+    await loadContacts();
+});
+
+inputField.addEventListener('input', (event) => {
+    if ( event.target.value.length > 2 || event.target.value.length === 0 ) {
+        clearContactList();
+        loadContacts(event.target.value)
+    }
 });
 
 async function loadContacts(query) {
-
     progressDiv.classList.remove('hide');
     blockquote.classList.add('hide');
 
@@ -31,29 +48,79 @@ async function loadContacts(query) {
 }
 
 function renderContacts(contacts) {
-    document.querySelectorAll("li").forEach( li => li.remove() );
-    for (const contact of contacts) {
+    clearContactList();
+    for ( const contact of contacts ) {
         mainUl.append(createLi(contact));
     }
 }
 
-function createLi(contact) {
-    const [li, i, header, body] = [createElem("li"), createElem("i"), createElem("div"), createElem("div")];
+function clearContactList() {
+    document.querySelectorAll("li").forEach( li => li.remove() );
+}
 
-    header.classList.add('collapsible-header');
-    header.textContent = contact.name;
-    header.prepend(i);
+function createLi(contact) {
+    const [li, header, body] = [createElem("li"),
+        createElem("div"),
+        createElem("div")];
+
+    fillHeader(contact, header);
+    fillBody(contact, body);
 
     body.classList.add('collapsible-body');
 
-    i.classList.add('material-icons');
-    i.textContent = 'account_circle';
-
-    createCustomFields(contact, header);
     li.append(header, body);
     return li;
 }
 
+function fillHeader(contact, header) {
+    const [i, nameSpan] = [createElem("i"),
+        createElem("span")];
+    header.classList.add('collapsible-header');
+    nameSpan.textContent = contact.name;
+    nameSpan.style.paddingTop = '5px';
+    header.prepend(i, nameSpan);
+    i.classList.add('material-icons');
+    i.textContent = 'account_circle';
+    i.style.paddingTop = '5px';
+    createTags(contact, header)
+    createCustomFields(contact, header);
+}
+
+function fillBody(contact, body) {
+    const leads = contact.leads;
+    leads.forEach(lead => {
+        const [leadContainer,
+            leadName,
+            pipeline,
+            price] = [createElem('div'),
+            createElem('div'),
+            createElem('div'),
+            createElem('div')];
+
+        leadContainer.style.display = 'flex';
+        leadContainer.style.flexDirection = 'row';
+        leadContainer.style.marginBottom = '10px';
+
+        leadName.textContent = lead.name;
+        leadName.style.marginRight = '5px';
+        leadName.style.fontWeight = '600';
+
+        pipeline.textContent = 'Воронка: ' + leadStatuses[lead["status_id"]][0];
+        pipeline.classList.add("badge");
+        pipeline.style.backgroundColor = leadStatuses[lead["status_id"]][1];
+        pipeline.style.fontWeight = '600';
+        pipeline.style.borderRadius = '2px';
+        pipeline.style.color = '#fff';
+        pipeline.style.paddingRight = '5px';
+        pipeline.style.paddingLeft = '5px';
+
+        price.textContent = lead['price'] + ' ₽';
+        price.style.marginLeft = '5px';
+
+        leadContainer.append(leadName, pipeline, price);
+        body.append(leadContainer);
+    });
+}
 
 function createElem(tag) {
     return document.createElement(tag)
@@ -62,7 +129,6 @@ function createElem(tag) {
 function createCustomFields(contact, header) {
     if ( contact['custom_fields'] && Array.isArray(contact['custom_fields']) ) {
         const fields = contact['custom_fields'].filter(field => ['PHONE', 'EMAIL'].includes(field['code']));
-        console.log(fields);
         fields.forEach(field => {
             if ( field.values && field.values.length > 0 ) {
                 header.append(createFieldNode(field.values[0].value));
@@ -75,6 +141,33 @@ function createCustomFields(contact, header) {
 function createFieldNode(value) {
     const span = createElem('span');
     span.classList.add('badge');
+    span.style.paddingTop = '5px';
     span.textContent = value;
     return span;
+}
+
+function createTags(contact, header) {
+    if ( contact['tags'] && Array.isArray(contact['tags']) ) {
+        header.append(createTagsContainer(contact['tags']));
+    }
+}
+
+function createTagsContainer(tags) {
+    let div = createElem("div");
+    let ul = createElem('ul');
+    div.style.width = '100px';
+    div.style.marginLeft = "1em";
+    div.append(ul);
+
+    ul.style.width = '500px';
+
+    tags.forEach(tag => tag.name && ul.append(createTagNode(tag.name)))
+    return div;
+}
+
+function createTagNode(tag) {
+    const li = createElem('li');
+    li.classList.add('chip');
+    li.textContent = tag;
+    return li;
 }
